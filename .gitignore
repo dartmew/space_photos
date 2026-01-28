@@ -289,3 +289,6 @@ Desktop.ini
 *.swp
 *.swo
 *~
+
+#download files:
+images/
