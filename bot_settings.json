@@ -1,0 +1,7 @@
+{
+    "images_folder": "images",
+    "allowed_extensions": [".jpg", ".jpeg", ".png"],
+    "caption_template": "🚀 Космическое фото 🌌",
+    "send_start_message": true,
+    "send_completion_message": true
+}
