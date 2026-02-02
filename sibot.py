@@ -54,7 +54,7 @@ def main():
     parser = argparse.ArgumentParser(description='Post images in Telegram channel')
     parser.add_argument('image_name', nargs='?', default='',
                         help='Choose image to post (optional, default: none. If none bot will post all images)')
-    parser.add_argument('interval_seconds', nargs='?', default=10, #14400
+    parser.add_argument('interval_seconds', nargs='?', default=14400,
                         help='Posting interval in seconds (optional, default: 4 hours)')
     args = parser.parse_args()
     
