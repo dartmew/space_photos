@@ -15,10 +15,10 @@ def get_apod(api_key, count):
     response = requests.get(url, params=params)
     response.raise_for_status()
 
-    data = response.json()
+    apod_items = response.json()
 
-    for element in data:
-        download_file(element['hdurl'])
+    for apod_item in apod_items:
+        download_file(apod_item['url'])
 
 
 def main():
@@ -26,16 +26,11 @@ def main():
     token = os.environ['NASA_TOKEN']
 
     parser = argparse.ArgumentParser(description='Download pictures of day from NASA')
-    parser.add_argument('count', nargs='?', default='5',
+    parser.add_argument('count', nargs='?', type=int, default=5,
                         help='Count of pictures to download (optional, default: 5)')
     args = parser.parse_args()
+    get_apod(token, args.count)
 
-    try:
-        get_apod(token, int(args.count))
-    except requests.exceptions.HTTPError as e:
-        print(f'HTTPError: {e}')
-    except Exception as e:
-        print(f'Error: {e}')
 
 if __name__ == '__main__':
     main()

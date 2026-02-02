@@ -5,6 +5,7 @@ from telegram import Bot
 from dotenv import load_dotenv
 import os
 import random
+from pathlib import Path
 
 
 def load_settings(settings_file='bot_settings.json'):
@@ -14,12 +15,12 @@ def load_settings(settings_file='bot_settings.json'):
     return settings
 
 def send_picture(bot, chat_id, images_folder, image, caption):
-    image_path = f'{images_folder}/{image}'
+    image_path = Path(images_folder) / image
 
     with open(image_path, 'rb') as photo_file:
         bot.send_photo(chat_id=chat_id, photo=photo_file, caption=caption)
 
-def make_images_pull(images_folder, extensions):
+def create_images_pool(images_folder, extensions):
     images_files = []
 
     for file in os.listdir(images_folder):
@@ -29,22 +30,17 @@ def make_images_pull(images_folder, extensions):
 
     return images_files
 
-def shuffle_images_pull(images_pull):
-    random.seed()
-    random.shuffle(images_pull)
 
-def post_images_from_pull(bot, chat_id, settings, images_pull, interval):
-    images_folder = settings['images_folder']
-    caption = settings['caption_template']
-    for image in images_pull:
-        send_picture(bot, chat_id, images_folder, image, caption)
-        time.sleep(interval)
+def post_all_images(bot, chat_id, settings, interval):
+    images_pool = create_images_pool(settings['images_folder'], settings['allowed_extensions'])
+    
+    while True:
+        random.shuffle(images_pool)
+        
+        for image in images_pool:
+            send_picture(bot, chat_id, settings['images_folder'], image, settings['caption_template'])
+            time.sleep(interval)
 
-def single_post(image_name):
-    if image_name == '':
-        return True
-    else:
-        return False
 
 def main():
     settings = load_settings()
@@ -54,25 +50,20 @@ def main():
     chat_id = os.environ['TG_CHAT_ID']
 
     bot = Bot(token=token)
-    images_folder = settings['images_folder']
 
     parser = argparse.ArgumentParser(description='Post images in Telegram channel')
     parser.add_argument('image_name', nargs='?', default='',
                         help='Choose image to post (optional, default: none. If none bot will post all images)')
-    parser.add_argument('interval_seconds', nargs='?', default=14400,
+    parser.add_argument('interval_seconds', nargs='?', default=10, #14400
                         help='Posting interval in seconds (optional, default: 4 hours)')
     args = parser.parse_args()
-    extensions = settings['allowed_extensions']
+    
 
-    if single_post(args.image_name):
-        send_picture(bot, chat_id, settings['image_folder'], args.image_name, settings['caption_template'])
+    if args.image_name == '':
+        post_all_images(bot, chat_id, settings, args.interval_seconds)
     else:
-        images_pull = make_images_pull(images_folder, extensions)
-
-        while(True):
-            shuffle_images_pull(images_pull)
-            post_images_from_pull(bot, chat_id, settings, images_pull, args.interval_seconds)
-            print('new round')
+        send_picture(bot, chat_id, settings['images_folder'], args.image_name, settings['caption_template'])
+        
 
 if __name__ == '__main__':
     main()

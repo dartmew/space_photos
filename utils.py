@@ -14,13 +14,16 @@ def get_file_name(url):
     return os.path.basename(decoded)
 
 
-def download_file(url, download_folder='images', headers={}):
+def download_file(url, download_folder='images', headers=None):
+    if headers is None:
+        headers = {}
     response = requests.get(url, headers=headers)
     response.raise_for_status()
 
     Path(download_folder).mkdir(parents=True, exist_ok=True)
-    download_path = f'{download_folder}/{get_file_name(url)}'
+    download_path = Path(download_folder) / get_file_name(url)
 
     with open(download_path, 'wb') as file:
         file.write(response.content)
-        print(f'Downloaded {file.name}')
+    
+    print(f'Downloaded {file.name}')

@@ -3,23 +3,25 @@ import requests
 import argparse
 
 
-def fetch_spacex_last_launch(launch_id):
-    folder = 'images'
-    url = 'https://api.spacexdata.com/v5/launches/{}'
-    response = requests.get(url.format(launch_id))
+def get_spacex_links(launch_id):
+    """Получает ссылки на фото запуска SpaceX"""
+    url = f'https://api.spacexdata.com/v5/launches/{launch_id}'
+    response = requests.get(url)
     response.raise_for_status()
-    links = response.json().get('links').get('flickr').get('original')
+    
+    data = response.json()
+    links = data.get('links', {}).get('flickr', {}).get('original', [])
+    return links
 
-    if not links:
-        response = requests.get(url.format('5eb87d47ffd86e000604b38a'))
-        response.raise_for_status()
-        links = response.json().get('links').get('flickr').get('original')
 
-        for link in links:
-            download_file(link, folder)
-    else:
-        for link in links:
-            download_file(link, folder)
+def download_spacex_photos(launch_id='latest', folder='images'):
+    links = get_spacex_links(launch_id)
+
+    if not links and launch_id != 'latest':
+        links = get_spacex_links('latest')
+    
+    for link in links:
+        download_file(link, folder)
 
 
 def main():
@@ -27,13 +29,7 @@ def main():
     parser.add_argument('launch_id', nargs='?', default='latest',
                         help='SpaceX launch ID (optional, default: latest)')
     args = parser.parse_args()
-
-    try:
-        fetch_spacex_last_launch(args.launch_id)
-    except requests.exceptions.HTTPError as e:
-        print(f'HTTPError: {e}')
-    except Exception as e:
-        print(f'Error: {e}')
+    download_spacex_photos(args.launch_id)
 
 if __name__ == '__main__':
     main()
